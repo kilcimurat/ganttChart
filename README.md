@@ -1,2 +1,2 @@
 🎯 **Etkileşimli Gantt Chart:**
-👉 [Projeyi zaman çizelgesiyle görüntüle](https://username.github.io/repo-name/gantt.html)
+👉 [Projeyi zaman çizelgesiyle görüntüle]( https://kilcimurat.github.io/ganttChart/gantt.html)
