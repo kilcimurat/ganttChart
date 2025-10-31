@@ -36,9 +36,7 @@
     padding: 4px;
   }
 
-  th.year { width: 70px; min-width: 70px; }
-  th.month { width: 70px; min-width: 70px; }
-  th.week { width: 70px; min-width: 70px; }
+  th.year, th.month, th.week { width: 70px; min-width: 70px; }
 
   th.year {
     background: #001f3f;
@@ -83,11 +81,9 @@
     background: #00b894;
   }
 
-  /* 🔴 Bugünün haftası vurgulama */
-  th.week.today {
-    background: #d63031 !important;
-    color: #fff;
-    border: 2px solid #b71c1c !important;
+  /* 🔴 Bulunulan haftanın tamamını renklendir */
+  .today-column {
+    background: rgba(255, 0, 0, 0.12) !important;
   }
 
   tr:hover td {
@@ -178,16 +174,19 @@
   table.appendChild(weekRow);
 
   // === Görev Satırları ===
+  const rowElements = [];
   tasks.forEach(task => {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="task-name">${task.name}</td>`;
     allWeeks.forEach(w => {
       const id = `${w.year}-W${w.week}`;
       const td = document.createElement("td");
+      td.dataset.week = id;
       if (isBetweenWeeks(id, task.start, task.end)) td.classList.add("bar");
       row.appendChild(td);
     });
     table.appendChild(row);
+    rowElements.push(row);
   });
 
   function isBetweenWeeks(current, start, end) {
@@ -198,14 +197,23 @@
     return order(current) >= order(start) && order(current) <= order(end);
   }
 
-  // === 🔴 Bugünün haftasını bul, işaretle ve ortala ===
+  // === 🔴 Bugünün haftasını bul ve o haftanın sütununu renklendir ===
   const today = new Date();
   const todayYear = today.getFullYear();
   const todayWeek = getISOWeek(today);
   const todayId = `${todayYear}-W${todayWeek}`;
   const todayEl = document.getElementById(todayId);
+
   if (todayEl) {
-    todayEl.classList.add("today");
+    // Haftanın tüm sütun hücrelerini bul
+    document.querySelectorAll(`[data-week='${todayId}']`).forEach(cell => {
+      cell.classList.add("today-column");
+    });
+
+    // Üstteki haftalık başlığı da belirgin yap
+    todayEl.style.background = "#e74c3c";
+    todayEl.style.color = "white";
+
     // Ortalamak için container kaydır
     const container = document.getElementById("gantt-container");
     const offsetLeft = todayEl.offsetLeft - container.clientWidth / 2 + todayEl.clientWidth / 2;
