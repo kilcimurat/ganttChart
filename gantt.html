@@ -5,72 +5,125 @@
 <title>Weekly Gantt Chart (2025–2028)</title>
 <style>
   body { font-family: Arial, sans-serif; margin: 20px; }
-  h2 { text-align: center; margin-bottom: 10px; }
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
-  th.week-header { background: #004d80; color: white; font-weight: 600; }
-  .task-name { text-align: left; background: #f0f0f0; font-weight: 500; }
+  h2 { text-align: center; margin-bottom: 15px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; table-layout: fixed; }
+  th, td { border: 1px solid #ccc; padding: 3px; text-align: center; }
+  th.month { background: #003366; color: white; font-weight: 600; }
+  th.week { background: #005f99; color: white; }
+  .task-name { text-align: left; background: #f0f0f0; font-weight: 500; white-space: nowrap; }
   .bar { background: #00b894; height: 16px; border-radius: 3px; }
-  .bar-container { position: relative; height: 18px; background: #fff; }
 </style>
 </head>
 <body>
 
-<h2>Project Gantt Chart (2025–2028 by Week)</h2>
+<h2>Weekly Gantt Chart (2025–2028)</h2>
 <table id="gantt"></table>
 
 <script>
-  // --- 1. Haftaları üret (Week1–Week52, 2025–2028) ---
-  const startYear = 2025;
-  const endYear = 2028;
-  const weeks = [];
-  for (let y = startYear; y <= endYear; y++) {
-    for (let w = 1; w <= 52; w++) {
-      weeks.push(`${y}-W${String(w).padStart(2, "0")}`);
-    }
-  }
-
-  // --- 2. Görevler ---
-  const tasks = [
-    { id: 1, name: "Design", start: "2025-W01", end: "2025-W05" },
-    { id: 2, name: "Backend Development", start: "2025-W06", end: "2025-W20" },
-    { id: 3, name: "Frontend Development", start: "2025-W10", end: "2025-W25" },
-    { id: 4, name: "Integration", start: "2025-W26", end: "2025-W30" },
-    { id: 5, name: "Testing & QA", start: "2025-W31", end: "2025-W36" },
-    { id: 6, name: "Release", start: "2025-W37", end: "2025-W38" },
-    { id: 7, name: "Maintenance", start: "2025-W39", end: "2028-W52" }
+  // === 1. Yardımcı Fonksiyonlar ===
+  const months = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
   ];
 
-  // --- 3. Tablo oluştur ---
+  function getWeeksPerMonth(year) {
+    // Ortalama 4-5 hafta/ay yaklaşımı
+    return [5,4,4,4,5,4,4,5,4,4,5,4]; 
+    // toplam = 52
+  }
+
+  // === 2. Yıllık haftaları üret ===
+  function generateYearWeeks(year) {
+    const weeks = [];
+    const weeksPerMonth = getWeeksPerMonth(year);
+    months.forEach((m, idx) => {
+      const count = weeksPerMonth[idx];
+      for (let w = 1; w <= count; w++) {
+        weeks.push({year, month: m, label: `W${w}`});
+      }
+    });
+    return weeks;
+  }
+
+  // === 3. 2025–2028 arası haftalar ===
+  const allWeeks = [];
+  for (let y = 2025; y <= 2028; y++) {
+    allWeeks.push(...generateYearWeeks(y));
+  }
+
+  // === 4. Görevler (haftalık bazda) ===
+  const tasks = [
+    { name: "Design", start: "2025-January-W1", end: "2025-February-W1" },
+    { name: "Backend Development", start: "2025-February-W2", end: "2025-July-W3" },
+    { name: "Frontend Development", start: "2025-April-W1", end: "2025-August-W2" },
+    { name: "Integration", start: "2025-September-W1", end: "2025-October-W2" },
+    { name: "Testing & QA", start: "2025-October-W3", end: "2025-December-W2" },
+    { name: "Release", start: "2025-December-W3", end: "2025-December-W4" },
+    { name: "Maintenance", start: "2026-January-W1", end: "2028-December-W4" }
+  ];
+
+  // === 5. Tablo oluştur ===
   const table = document.getElementById("gantt");
 
-  // Başlık satırı
-  const header = document.createElement("tr");
-  header.innerHTML = `<th>Task</th>` + weeks.map(w => `<th class="week-header">${w}</th>`).join("");
-  table.appendChild(header);
+  // --- Üst Başlık: Aylar ---
+  const monthRow = document.createElement("tr");
+  let monthCells = "";
+  let monthGroup = {};
+  allWeeks.forEach((w) => {
+    monthGroup[w.month] = (monthGroup[w.month] || 0) + 1;
+  });
 
-  // --- 4. Her görevi çiz ---
+  // Tek tek ekle
+  for (let y = 2025; y <= 2028; y++) {
+    const yearWeeks = allWeeks.filter(w => w.year === y);
+    let currentMonth = "";
+    let span = 0;
+    yearWeeks.forEach((w, idx) => {
+      if (w.month !== currentMonth) {
+        if (span > 0) {
+          monthCells += `<th class="month" colspan="${span}">${currentMonth} ${y}</th>`;
+        }
+        currentMonth = w.month;
+        span = 1;
+      } else {
+        span++;
+      }
+      if (idx === yearWeeks.length - 1) {
+        monthCells += `<th class="month" colspan="${span}">${currentMonth} ${y}</th>`;
+      }
+    });
+  }
+  monthRow.innerHTML = `<th rowspan="2">Task</th>` + monthCells;
+  table.appendChild(monthRow);
+
+  // --- Alt Başlık: Haftalar ---
+  const weekRow = document.createElement("tr");
+  weekRow.innerHTML = allWeeks.map(w => `<th class="week">${w.label}</th>`).join("");
+  table.appendChild(weekRow);
+
+  // --- Görev satırları ---
   tasks.forEach(task => {
     const row = document.createElement("tr");
-
-    // Görev adı
-    const nameCell = document.createElement("td");
-    nameCell.className = "task-name";
-    nameCell.textContent = task.name;
-    row.appendChild(nameCell);
-
-    // Haftalık hücreler
-    const startIndex = weeks.indexOf(task.start);
-    const endIndex = weeks.indexOf(task.end);
-    weeks.forEach((w, i) => {
+    row.innerHTML = `<td class="task-name">${task.name}</td>`;
+    allWeeks.forEach(w => {
       const td = document.createElement("td");
-      if (i >= startIndex && i <= endIndex) {
+      const id = `${w.year}-${w.month}-${w.label}`;
+      if (isBetweenWeeks(id, task.start, task.end)) {
         td.style.background = "#00b894";
       }
       row.appendChild(td);
     });
     table.appendChild(row);
   });
+
+  // === Yardımcı karşılaştırma fonksiyonu ===
+  function isBetweenWeeks(current, start, end) {
+    const order = (id) => {
+      const [y, m, wk] = id.split("-");
+      return parseInt(y)*1000 + months.indexOf(m)*10 + parseInt(wk.replace("W",""));
+    };
+    return order(current) >= order(start) && order(current) <= order(end);
+  }
 </script>
 </body>
 </html>
