@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Optimized Weekly Gantt Chart (2025–2028)</title>
+<title>Fixed Size Weekly Gantt Chart (2025–2028)</title>
 <style>
   body {
     font-family: "Segoe UI", Arial, sans-serif;
@@ -27,15 +27,19 @@
   table {
     border-collapse: collapse;
     width: max-content;
-    min-width: 100%;
     font-size: 12px;
   }
+
   th, td {
     border: 1px solid #d0d7e3;
     text-align: center;
-    padding: 2px;
-    min-width: 36px;
+    padding: 4px;
   }
+
+  /* === Sabit boyutlar === */
+  th.year { width: 70px; min-width: 70px; }
+  th.month { width: 70px; min-width: 70px; }
+  th.week { width: 70px; min-width: 70px; }
 
   /* === Başlık renkleri === */
   th.year {
@@ -52,7 +56,7 @@
     color: white;
     font-weight: 600;
     position: sticky;
-    top: 20px;
+    top: 22px;
     z-index: 2;
     white-space: nowrap;
   }
@@ -61,8 +65,9 @@
     color: #fff;
     font-weight: 500;
     position: sticky;
-    top: 42px;
+    top: 44px;
     z-index: 1;
+    white-space: nowrap;
   }
 
   /* === Görev Satırları === */
@@ -71,7 +76,7 @@
     font-weight: 600;
     text-align: left;
     color: #003366;
-    min-width: 120px;
+    min-width: 150px;
     position: sticky;
     left: 0;
     z-index: 4;
@@ -83,11 +88,6 @@
 
   tr:hover td {
     background-color: #f8ffff;
-  }
-
-  th.month, th.week {
-    text-overflow: ellipsis;
-    overflow: hidden;
   }
 </style>
 </head>
@@ -118,7 +118,7 @@
     const totalWeeks = getWeeksInYear(year);
     for (let w = 1; w <= totalWeeks; w++) {
       const d = new Date(year, 0, 1 + (w - 1) * 7);
-      const month = d.toLocaleString("en", { month: "short" }); // Jan, Feb, ...
+      const month = d.toLocaleString("en", { month: "long" });
       allWeeks.push({ year, month, week: w });
     }
   }
@@ -167,12 +167,12 @@
   monthRow.innerHTML = monthCells;
   table.appendChild(monthRow);
 
-  // === 3. Satır: Haftalar (kısa w) ===
+  // === 3. Satır: Haftalar ===
   const weekRow = document.createElement("tr");
   weekRow.innerHTML = allWeeks.map(w => `<th class="week">w${w.week}</th>`).join("");
   table.appendChild(weekRow);
 
-  // === Görev satırları ===
+  // === Görev Satırları ===
   tasks.forEach(task => {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="task-name">${task.name}</td>`;
@@ -185,7 +185,7 @@
     table.appendChild(row);
   });
 
-  // Yardımcı
+  // === Haftalar Arası Karşılaştırma ===
   function isBetweenWeeks(current, start, end) {
     const order = id => {
       const [y, wk] = id.split("-W");
