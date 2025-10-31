@@ -2,16 +2,31 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fixed Size Weekly Gantt Chart (2025–2028)</title>
+<title>Modern Weekly Gantt Chart (2025–2028)</title>
 <style>
-  body {
-    font-family: "Segoe UI", Arial, sans-serif;
-    margin: 20px;
-    background: #f8f9fb;
+  :root {
+    --bg-light: #f8fafc;
+    --header-dark: #0f172a;
+    --header-mid: #1e3a8a;
+    --header-light: #2563eb;
+    --border-color: #dbe2ef;
+    --bar-color: #38bdf8;
+    --highlight-color: rgba(255, 159, 67, 0.25);
+    --hover-row: #f1f5f9;
+    --task-bg: #f8fafc;
   }
+
+  body {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    margin: 20px;
+    background: var(--bg-light);
+    color: #1e293b;
+  }
+
   h2 {
     text-align: center;
-    color: #003366;
+    color: var(--header-dark);
+    font-weight: 600;
     margin-bottom: 16px;
   }
 
@@ -19,75 +34,106 @@
     overflow-x: auto;
     overflow-y: auto;
     max-height: 80vh;
-    border-radius: 6px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
     background: white;
+    border: 1px solid var(--border-color);
   }
 
   table {
     border-collapse: collapse;
     width: max-content;
-    font-size: 12px;
+    font-size: 13px;
+    border-radius: 12px;
+    overflow: hidden;
   }
 
   th, td {
-    border: 1px solid #d0d7e3;
+    border: 1px solid var(--border-color);
     text-align: center;
-    padding: 4px;
+    padding: 6px;
+    transition: background 0.3s;
   }
 
-  th.year, th.month, th.week { width: 70px; min-width: 70px; }
+  th.year, th.month, th.week {
+    width: 80px;
+    min-width: 80px;
+  }
 
+  /* === HEADER === */
   th.year {
-    background: #001f3f;
+    background: var(--header-dark);
     color: white;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     position: sticky;
     top: 0;
     z-index: 3;
   }
   th.month {
-    background: #005fa3;
+    background: var(--header-mid);
     color: white;
     font-weight: 600;
     position: sticky;
-    top: 22px;
+    top: 28px;
     z-index: 2;
     white-space: nowrap;
   }
   th.week {
-    background: #0074cc;
+    background: var(--header-light);
     color: #fff;
     font-weight: 500;
     position: sticky;
-    top: 44px;
+    top: 56px;
     z-index: 1;
     white-space: nowrap;
   }
 
+  /* === TASKS === */
   td.task-name {
-    background: #f0f4f8;
+    background: var(--task-bg);
     font-weight: 600;
     text-align: left;
-    color: #003366;
-    min-width: 150px;
+    color: var(--header-dark);
+    min-width: 180px;
     position: sticky;
     left: 0;
     z-index: 4;
+    border-right: 2px solid var(--border-color);
   }
 
   td.bar {
-    background: #00b894;
-  }
-
-  /* 🔴 Bulunulan haftanın tamamını renklendir */
-  .today-column {
-    background: rgba(255, 0, 0, 0.12) !important;
+    background: var(--bar-color);
+    border-radius: 8px;
   }
 
   tr:hover td {
-    background-color: #f8ffff;
+    background-color: var(--hover-row);
+  }
+
+  /* === Bugünün Haftası === */
+  .today-column {
+    background: var(--highlight-color) !important;
+  }
+
+  th.week.today {
+    background: #f97316 !important;
+    color: white;
+    font-weight: 700;
+    border-radius: 6px 6px 0 0;
+  }
+
+  /* === Scrollbar Custom === */
+  ::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
   }
 </style>
 </head>
@@ -99,7 +145,7 @@
 </div>
 
 <script>
-  // === Yardımcı Fonksiyonlar ===
+  // === Helper Functions ===
   function getISOWeek(date) {
     const tmp = new Date(date.getTime());
     tmp.setHours(0, 0, 0, 0);
@@ -107,24 +153,23 @@
     const week1 = new Date(tmp.getFullYear(), 0, 4);
     return 1 + Math.round(((tmp - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
   }
-
   function getWeeksInYear(year) {
     const d = new Date(year, 11, 31);
     return getISOWeek(d) === 1 ? 52 : getISOWeek(d);
   }
 
-  // === Haftaları oluştur ===
+  // === Generate Weeks ===
   const allWeeks = [];
   for (let year = 2025; year <= 2028; year++) {
     const totalWeeks = getWeeksInYear(year);
     for (let w = 1; w <= totalWeeks; w++) {
       const d = new Date(year, 0, 1 + (w - 1) * 7);
-      const month = d.toLocaleString("en", { month: "long" });
+      const month = d.toLocaleString("en", { month: "short" });
       allWeeks.push({ year, month, week: w });
     }
   }
 
-  // === Görevler ===
+  // === Tasks ===
   const tasks = [
     { name: "Design", start: "2025-W1", end: "2025-W5" },
     { name: "Backend Development", start: "2025-W6", end: "2025-W25" },
@@ -136,7 +181,7 @@
 
   const table = document.getElementById("gantt");
 
-  // === 1. Satır: Yıllar ===
+  // === Row: Years ===
   const yearRow = document.createElement("tr");
   let currentYear = null, yearSpan = 0, yearCells = "";
   allWeeks.forEach((w, i) => {
@@ -148,10 +193,10 @@
     if (i === allWeeks.length - 1)
       yearCells += `<th class="year" colspan="${yearSpan}">${currentYear}</th>`;
   });
-  yearRow.innerHTML = `<th rowspan="3" class="year" style="min-width:150px;">Task</th>` + yearCells;
+  yearRow.innerHTML = `<th rowspan="3" class="year" style="min-width:180px;">Task</th>` + yearCells;
   table.appendChild(yearRow);
 
-  // === 2. Satır: Aylar ===
+  // === Row: Months ===
   const monthRow = document.createElement("tr");
   let currentMonth = "", currentYearForMonth = null, monthSpan = 0, monthCells = "";
   allWeeks.forEach((w, i) => {
@@ -168,13 +213,12 @@
   monthRow.innerHTML = monthCells;
   table.appendChild(monthRow);
 
-  // === 3. Satır: Haftalar ===
+  // === Row: Weeks ===
   const weekRow = document.createElement("tr");
   weekRow.innerHTML = allWeeks.map(w => `<th class="week" id="${w.year}-W${w.week}">w${w.week}</th>`).join("");
   table.appendChild(weekRow);
 
-  // === Görev Satırları ===
-  const rowElements = [];
+  // === Rows: Tasks ===
   tasks.forEach(task => {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="task-name">${task.name}</td>`;
@@ -186,7 +230,6 @@
       row.appendChild(td);
     });
     table.appendChild(row);
-    rowElements.push(row);
   });
 
   function isBetweenWeeks(current, start, end) {
@@ -197,7 +240,7 @@
     return order(current) >= order(start) && order(current) <= order(end);
   }
 
-  // === 🔴 Bugünün haftasını bul ve o haftanın sütununu renklendir ===
+  // === Highlight current week ===
   const today = new Date();
   const todayYear = today.getFullYear();
   const todayWeek = getISOWeek(today);
@@ -205,16 +248,10 @@
   const todayEl = document.getElementById(todayId);
 
   if (todayEl) {
-    // Haftanın tüm sütun hücrelerini bul
+    todayEl.classList.add("today");
     document.querySelectorAll(`[data-week='${todayId}']`).forEach(cell => {
       cell.classList.add("today-column");
     });
-
-    // Üstteki haftalık başlığı da belirgin yap
-    todayEl.style.background = "#e74c3c";
-    todayEl.style.color = "white";
-
-    // Ortalamak için container kaydır
     const container = document.getElementById("gantt-container");
     const offsetLeft = todayEl.offsetLeft - container.clientWidth / 2 + todayEl.clientWidth / 2;
     container.scrollLeft = offsetLeft;
