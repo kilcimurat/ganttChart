@@ -2,20 +2,37 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Project Gantt Chart</title>
+  <title>Project Gantt Chart (Weekly View)</title>
   <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
+  <style>
+    body { font-family: sans-serif; margin: 40px; }
+    h2 { text-align: center; }
+  </style>
 </head>
 <body>
-  <h2>Project Timeline</h2>
+  <h2>Project Timeline (Weekly View)</h2>
   <svg id="gantt"></svg>
+
   <script>
     const tasks = [
-      { id: 'Design', name: 'Design', start: '2025-10-01', end: '2025-10-05', progress: 100 },
-      { id: 'Backend', name: 'Backend Dev', start: '2025-10-06', end: '2025-10-20', progress: 70 },
-      { id: 'Frontend', name: 'Frontend Dev', start: '2025-10-10', end: '2025-10-25', progress: 50 },
+      { id: 'Design', name: 'Design', start: '2025-09-29', end: '2025-10-05', progress: 100 },
+      { id: 'Backend', name: 'Backend Dev', start: '2025-10-06', end: '2025-10-19', progress: 70 },
+      { id: 'Frontend', name: 'Frontend Dev', start: '2025-10-13', end: '2025-10-26', progress: 50 },
+      { id: 'Testing', name: 'Testing & QA', start: '2025-10-27', end: '2025-11-09', progress: 20 }
     ];
-    new Gantt("#gantt", tasks);
+
+    // Haftalık görünüm
+    const gantt = new Gantt("#gantt", tasks, {
+      view_mode: "Week",
+      language: "en",
+      custom_popup_html: task => `
+        <div class="details-container">
+          <h5>${task.name}</h5>
+          <p>${task.start} → ${task.end}</p>
+          <p>Progress: ${task.progress}%</p>
+        </div>`
+    });
   </script>
 </body>
 </html>
