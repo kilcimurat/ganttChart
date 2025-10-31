@@ -1,52 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Yearly Weekly Gantt (2025–2028)</title>
-  <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
-  <style>
-    body { font-family: sans-serif; margin: 30px; }
-    h2 { text-align: center; }
-  </style>
+<meta charset="UTF-8">
+<title>Weekly Gantt Chart (2025–2028)</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  h2 { text-align: center; margin-bottom: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
+  th.week-header { background: #004d80; color: white; font-weight: 600; }
+  .task-name { text-align: left; background: #f0f0f0; font-weight: 500; }
+  .bar { background: #00b894; height: 16px; border-radius: 3px; }
+  .bar-container { position: relative; height: 18px; background: #fff; }
+</style>
 </head>
 <body>
-  <h2>Project Timeline (2025–2028 Weeks)</h2>
-  <svg id="gantt"></svg>
 
-  <script>
-    // Haftalık görevler üret
-    function generateWeeks(startYear, endYear) {
-      const weeks = [];
-      for (let year = startYear; year <= endYear; year++) {
-        for (let week = 1; week <= 52; week++) {
-          const start = new Date(year, 0, 1 + (week - 1) * 7);
-          const end = new Date(year, 0, 7 + (week - 1) * 7);
-          weeks.push({
-            id: `${year}-W${week}`,
-            name: `${year} Week ${week}`,
-            start: start.toISOString().split("T")[0],
-            end: end.toISOString().split("T")[0],
-            progress: 0
-          });
-        }
-      }
-      return weeks;
+<h2>Project Gantt Chart (2025–2028 by Week)</h2>
+<table id="gantt"></table>
+
+<script>
+  // --- 1. Haftaları üret (Week1–Week52, 2025–2028) ---
+  const startYear = 2025;
+  const endYear = 2028;
+  const weeks = [];
+  for (let y = startYear; y <= endYear; y++) {
+    for (let w = 1; w <= 52; w++) {
+      weeks.push(`${y}-W${String(w).padStart(2, "0")}`);
     }
+  }
 
-    const tasks = generateWeeks(2025, 2028);
+  // --- 2. Görevler ---
+  const tasks = [
+    { id: 1, name: "Design", start: "2025-W01", end: "2025-W05" },
+    { id: 2, name: "Backend Development", start: "2025-W06", end: "2025-W20" },
+    { id: 3, name: "Frontend Development", start: "2025-W10", end: "2025-W25" },
+    { id: 4, name: "Integration", start: "2025-W26", end: "2025-W30" },
+    { id: 5, name: "Testing & QA", start: "2025-W31", end: "2025-W36" },
+    { id: 6, name: "Release", start: "2025-W37", end: "2025-W38" },
+    { id: 7, name: "Maintenance", start: "2025-W39", end: "2028-W52" }
+  ];
 
-    new Gantt("#gantt", tasks, {
-      view_mode: "Week",
-      language: "en",
-      bar_height: 18,
-      step: 7,
-      custom_popup_html: task => `
-        <div class="details-container">
-          <h5>${task.name}</h5>
-          <p>${task.start} → ${task.end}</p>
-        </div>`
+  // --- 3. Tablo oluştur ---
+  const table = document.getElementById("gantt");
+
+  // Başlık satırı
+  const header = document.createElement("tr");
+  header.innerHTML = `<th>Task</th>` + weeks.map(w => `<th class="week-header">${w}</th>`).join("");
+  table.appendChild(header);
+
+  // --- 4. Her görevi çiz ---
+  tasks.forEach(task => {
+    const row = document.createElement("tr");
+
+    // Görev adı
+    const nameCell = document.createElement("td");
+    nameCell.className = "task-name";
+    nameCell.textContent = task.name;
+    row.appendChild(nameCell);
+
+    // Haftalık hücreler
+    const startIndex = weeks.indexOf(task.start);
+    const endIndex = weeks.indexOf(task.end);
+    weeks.forEach((w, i) => {
+      const td = document.createElement("td");
+      if (i >= startIndex && i <= endIndex) {
+        td.style.background = "#00b894";
+      }
+      row.appendChild(td);
     });
-  </script>
+    table.appendChild(row);
+  });
+</script>
 </body>
 </html>
