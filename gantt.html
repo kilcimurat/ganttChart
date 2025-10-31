@@ -10,9 +10,9 @@
     --header-mid: #1e3a8a;
     --header-light: #2563eb;
     --border-color: #dbe2ef;
-    --bar-color: #38bdf8; /* 🔵 modern soft cyan (eski yeşil yerine) */
-    --bar-blend: #fb923c; /* 🔸 turuncu ile karışım hedefi */
-    --highlight-color: rgba(251, 146, 60, 0.15); /* turuncu transparan */
+    --bar-color: #38bdf8; /* 🔵 soft cyan */
+    --bar-blend: #fb923c; /* 🔸 turuncu karışımı */
+    --highlight-color: rgba(251, 146, 60, 0.12);
     --task-bg: #f8fafc;
   }
 
@@ -70,6 +70,7 @@
     z-index: 20;
     left: 0;
   }
+
   th.month {
     background: var(--header-mid);
     color: white;
@@ -78,6 +79,7 @@
     top: 28px;
     z-index: 19;
   }
+
   th.week {
     background: var(--header-light);
     color: #fff;
@@ -85,6 +87,33 @@
     position: sticky;
     top: 56px;
     z-index: 18;
+    white-space: nowrap;
+    border-radius: 0;
+  }
+
+  /* === BUGÜNÜN HAFTASI === */
+  th.week.today {
+    background: #f97316 !important;
+    color: white;
+    font-weight: 700;
+    z-index: 30;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    transform: translateZ(0); /* 🔧 scroll jitter fix */
+  }
+
+  .today-column {
+    background: var(--highlight-color) !important;
+    position: relative;
+    z-index: 0;
+  }
+
+  /* 🔸 Karışım Efekti: hem bugünün haftası hem bar */
+  td.bar.today-column {
+    background: linear-gradient(135deg, var(--bar-color) 40%, var(--bar-blend) 60%);
+    mix-blend-mode: multiply;
+    filter: brightness(1.05);
   }
 
   /* === SABİT İLK SÜTUN === */
@@ -100,7 +129,7 @@
     border-right: 2px solid var(--border-color);
   }
 
-  /* === BARLAR === */
+  /* === GÖREV BARLARI === */
   td.bar {
     background: var(--bar-color);
     border-radius: 6px;
@@ -113,28 +142,9 @@
   tr:hover td:not(.task-name):not(.bar) {
     background-color: #f8ffff;
   }
+
   tr:hover td.bar {
     filter: brightness(1.08);
-  }
-
-  /* === Bugünün Haftası === */
-  th.week.today {
-    background: #f97316 !important;
-    color: white;
-    font-weight: 700;
-    border-radius: 6px 6px 0 0;
-    z-index: 30;
-  }
-
-  .today-column {
-    background: var(--highlight-color) !important;
-  }
-
-  /* 🔸 Karışım Efekti: Eğer hücre hem today hem bar ise renkler toplanır */
-  td.bar.today-column {
-    background: linear-gradient(135deg, var(--bar-color) 40%, var(--bar-blend) 60%);
-    mix-blend-mode: multiply;
-    filter: brightness(1.05);
   }
 
   /* === Scrollbar === */
@@ -142,13 +152,16 @@
     height: 10px;
     width: 10px;
   }
+
   ::-webkit-scrollbar-thumb {
     background-color: #cbd5e1;
     border-radius: 10px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background-color: #94a3b8;
   }
+
 </style>
 </head>
 <body>
@@ -159,6 +172,7 @@
 </div>
 
 <script>
+  // === Yardımcı Fonksiyonlar ===
   function getISOWeek(date) {
     const tmp = new Date(date.getTime());
     tmp.setHours(0, 0, 0, 0);
@@ -166,11 +180,13 @@
     const week1 = new Date(tmp.getFullYear(), 0, 4);
     return 1 + Math.round(((tmp - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
   }
+
   function getWeeksInYear(year) {
     const d = new Date(year, 11, 31);
     return getISOWeek(d) === 1 ? 52 : getISOWeek(d);
   }
 
+  // === Haftalar ===
   const allWeeks = [];
   for (let year = 2025; year <= 2028; year++) {
     const totalWeeks = getWeeksInYear(year);
@@ -181,6 +197,7 @@
     }
   }
 
+  // === Görevler ===
   const tasks = [
     { name: "Design", start: "2025-W1", end: "2025-W5" },
     { name: "Backend Development", start: "2025-W6", end: "2025-W25" },
@@ -192,7 +209,7 @@
 
   const table = document.getElementById("gantt");
 
-  // === Yıl Satırı ===
+  // === Yıllar Satırı ===
   const yearRow = document.createElement("tr");
   let currentYear = null, yearSpan = 0, yearCells = "";
   allWeeks.forEach((w, i) => {
