@@ -36,12 +36,10 @@
     padding: 4px;
   }
 
-  /* === Sabit boyutlar === */
   th.year { width: 70px; min-width: 70px; }
   th.month { width: 70px; min-width: 70px; }
   th.week { width: 70px; min-width: 70px; }
 
-  /* === Başlık renkleri === */
   th.year {
     background: #001f3f;
     color: white;
@@ -70,7 +68,6 @@
     white-space: nowrap;
   }
 
-  /* === Görev Satırları === */
   td.task-name {
     background: #f0f4f8;
     font-weight: 600;
@@ -86,6 +83,13 @@
     background: #00b894;
   }
 
+  /* 🔴 Bugünün haftası vurgulama */
+  th.week.today {
+    background: #d63031 !important;
+    color: #fff;
+    border: 2px solid #b71c1c !important;
+  }
+
   tr:hover td {
     background-color: #f8ffff;
   }
@@ -94,7 +98,7 @@
 <body>
 
 <h2>Weekly Gantt Chart (2025–2028)</h2>
-<div class="gantt-container">
+<div class="gantt-container" id="gantt-container">
   <table id="gantt"></table>
 </div>
 
@@ -107,6 +111,7 @@
     const week1 = new Date(tmp.getFullYear(), 0, 4);
     return 1 + Math.round(((tmp - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
   }
+
   function getWeeksInYear(year) {
     const d = new Date(year, 11, 31);
     return getISOWeek(d) === 1 ? 52 : getISOWeek(d);
@@ -169,7 +174,7 @@
 
   // === 3. Satır: Haftalar ===
   const weekRow = document.createElement("tr");
-  weekRow.innerHTML = allWeeks.map(w => `<th class="week">w${w.week}</th>`).join("");
+  weekRow.innerHTML = allWeeks.map(w => `<th class="week" id="${w.year}-W${w.week}">w${w.week}</th>`).join("");
   table.appendChild(weekRow);
 
   // === Görev Satırları ===
@@ -185,13 +190,26 @@
     table.appendChild(row);
   });
 
-  // === Haftalar Arası Karşılaştırma ===
   function isBetweenWeeks(current, start, end) {
     const order = id => {
       const [y, wk] = id.split("-W");
       return parseInt(y) * 100 + parseInt(wk);
     };
     return order(current) >= order(start) && order(current) <= order(end);
+  }
+
+  // === 🔴 Bugünün haftasını bul, işaretle ve ortala ===
+  const today = new Date();
+  const todayYear = today.getFullYear();
+  const todayWeek = getISOWeek(today);
+  const todayId = `${todayYear}-W${todayWeek}`;
+  const todayEl = document.getElementById(todayId);
+  if (todayEl) {
+    todayEl.classList.add("today");
+    // Ortalamak için container kaydır
+    const container = document.getElementById("gantt-container");
+    const offsetLeft = todayEl.offsetLeft - container.clientWidth / 2 + todayEl.clientWidth / 2;
+    container.scrollLeft = offsetLeft;
   }
 </script>
 
