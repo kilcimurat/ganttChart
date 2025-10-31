@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Clean Weekly Gantt Chart (2025–2028)</title>
+<title>Optimized Weekly Gantt Chart (2025–2028)</title>
 <style>
-  body { 
+  body {
     font-family: "Segoe UI", Arial, sans-serif;
     margin: 20px;
     background: #f8f9fb;
@@ -12,38 +12,57 @@
   h2 {
     text-align: center;
     color: #003366;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
   }
+
+  .gantt-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 80vh;
+    border-radius: 6px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    background: white;
+  }
+
   table {
     border-collapse: collapse;
-    width: 100%;
-    table-layout: fixed;
+    width: max-content;
+    min-width: 100%;
     font-size: 12px;
-    background: white;
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
   }
   th, td {
     border: 1px solid #d0d7e3;
     text-align: center;
-    padding: 4px;
+    padding: 2px;
+    min-width: 36px;
   }
 
-  /* === Başlık Renkleri === */
+  /* === Başlık renkleri === */
   th.year {
     background: #001f3f;
     color: white;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 3;
   }
   th.month {
     background: #005fa3;
     color: white;
     font-weight: 600;
+    position: sticky;
+    top: 20px;
+    z-index: 2;
+    white-space: nowrap;
   }
   th.week {
     background: #0074cc;
     color: #fff;
     font-weight: 500;
+    position: sticky;
+    top: 42px;
+    z-index: 1;
   }
 
   /* === Görev Satırları === */
@@ -52,23 +71,23 @@
     font-weight: 600;
     text-align: left;
     color: #003366;
-    width: 120px;
-    white-space: nowrap;
-    padding-left: 8px;
+    min-width: 120px;
+    position: sticky;
+    left: 0;
+    z-index: 4;
   }
+
   td.bar {
     background: #00b894;
   }
 
-  /* Hover efekti */
   tr:hover td {
     background-color: #f8ffff;
   }
 
-  /* Dar görünümde yatay kaydırma */
-  .gantt-container {
-    overflow-x: auto;
-    border-radius: 6px;
+  th.month, th.week {
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 </style>
 </head>
@@ -80,7 +99,7 @@
 </div>
 
 <script>
-  // --- Yardımcı Fonksiyonlar ---
+  // === Yardımcı Fonksiyonlar ===
   function getISOWeek(date) {
     const tmp = new Date(date.getTime());
     tmp.setHours(0, 0, 0, 0);
@@ -93,18 +112,18 @@
     return getISOWeek(d) === 1 ? 52 : getISOWeek(d);
   }
 
-  // --- Haftaları oluştur ---
+  // === Haftaları oluştur ===
   const allWeeks = [];
   for (let year = 2025; year <= 2028; year++) {
     const totalWeeks = getWeeksInYear(year);
     for (let w = 1; w <= totalWeeks; w++) {
       const d = new Date(year, 0, 1 + (w - 1) * 7);
-      const month = d.toLocaleString("en", { month: "long" });
+      const month = d.toLocaleString("en", { month: "short" }); // Jan, Feb, ...
       allWeeks.push({ year, month, week: w });
     }
   }
 
-  // --- Görevler ---
+  // === Görevler ===
   const tasks = [
     { name: "Design", start: "2025-W1", end: "2025-W5" },
     { name: "Backend Development", start: "2025-W6", end: "2025-W25" },
@@ -128,7 +147,7 @@
     if (i === allWeeks.length - 1)
       yearCells += `<th class="year" colspan="${yearSpan}">${currentYear}</th>`;
   });
-  yearRow.innerHTML = `<th rowspan="3" style="width:150px;">Task</th>` + yearCells;
+  yearRow.innerHTML = `<th rowspan="3" class="year" style="min-width:150px;">Task</th>` + yearCells;
   table.appendChild(yearRow);
 
   // === 2. Satır: Aylar ===
@@ -148,12 +167,12 @@
   monthRow.innerHTML = monthCells;
   table.appendChild(monthRow);
 
-  // === 3. Satır: Haftalar (kısa 'w') ===
+  // === 3. Satır: Haftalar (kısa w) ===
   const weekRow = document.createElement("tr");
   weekRow.innerHTML = allWeeks.map(w => `<th class="week">w${w.week}</th>`).join("");
   table.appendChild(weekRow);
 
-  // === 4. Satırlar: Görevler ===
+  // === Görev satırları ===
   tasks.forEach(task => {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="task-name">${task.name}</td>`;
@@ -166,7 +185,7 @@
     table.appendChild(row);
   });
 
-  // Yardımcı karşılaştırma fonksiyonu
+  // Yardımcı
   function isBetweenWeeks(current, start, end) {
     const order = id => {
       const [y, wk] = id.split("-W");
