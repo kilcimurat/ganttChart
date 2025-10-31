@@ -10,8 +10,8 @@
     --header-mid: #1e3a8a;
     --header-light: #2563eb;
     --border-color: #dbe2ef;
-    --bar-color: #38bdf8;
-    --highlight-color: rgba(255, 159, 67, 0.25);
+    --bar-color: #00b894;
+    --highlight-color: rgba(255, 180, 0, 0.15);
     --hover-row: #f1f5f9;
     --task-bg: #f8fafc;
   }
@@ -68,7 +68,7 @@
     font-weight: 700;
     position: sticky;
     top: 0;
-    z-index: 3;
+    z-index: 20;
   }
   th.month {
     background: var(--header-mid);
@@ -76,7 +76,7 @@
     font-weight: 600;
     position: sticky;
     top: 28px;
-    z-index: 2;
+    z-index: 19;
     white-space: nowrap;
   }
   th.week {
@@ -85,7 +85,7 @@
     font-weight: 500;
     position: sticky;
     top: 56px;
-    z-index: 1;
+    z-index: 18;
     white-space: nowrap;
   }
 
@@ -98,22 +98,34 @@
     min-width: 180px;
     position: sticky;
     left: 0;
-    z-index: 4;
+    z-index: 25;
     border-right: 2px solid var(--border-color);
   }
 
   td.bar {
     background: var(--bar-color);
     border-radius: 8px;
+    position: relative;
+    z-index: 5;
+    mix-blend-mode: multiply; /* 🔹 Renkleri karıştırır */
+    transition: filter 0.2s ease;
   }
 
-  tr:hover td {
-    background-color: var(--hover-row);
+  /* === Hover satırları === */
+  tr:hover td:not(.task-name):not(.bar) {
+    background-color: #f8ffff;
+    z-index: 0;
+  }
+  tr:hover td.bar {
+    opacity: 1;
+    filter: brightness(1.1);
+    z-index: 6;
   }
 
-  /* === Bugünün Haftası === */
+  /* === Bugünün haftası === */
   .today-column {
     background: var(--highlight-color) !important;
+    mix-blend-mode: multiply; /* 🔹 Bar renkleriyle karışsın */
   }
 
   th.week.today {
@@ -121,9 +133,10 @@
     color: white;
     font-weight: 700;
     border-radius: 6px 6px 0 0;
+    z-index: 30;
   }
 
-  /* === Scrollbar Custom === */
+  /* === Scrollbar === */
   ::-webkit-scrollbar {
     height: 10px;
     width: 10px;
@@ -135,6 +148,11 @@
   ::-webkit-scrollbar-thumb:hover {
     background-color: #94a3b8;
   }
+
+  /* === Hover transition === */
+  tr {
+    transition: background 0.2s ease;
+  }
 </style>
 </head>
 <body>
@@ -145,7 +163,7 @@
 </div>
 
 <script>
-  // === Helper Functions ===
+  // === Yardımcı Fonksiyonlar ===
   function getISOWeek(date) {
     const tmp = new Date(date.getTime());
     tmp.setHours(0, 0, 0, 0);
@@ -158,7 +176,7 @@
     return getISOWeek(d) === 1 ? 52 : getISOWeek(d);
   }
 
-  // === Generate Weeks ===
+  // === Haftaları oluştur ===
   const allWeeks = [];
   for (let year = 2025; year <= 2028; year++) {
     const totalWeeks = getWeeksInYear(year);
@@ -169,7 +187,7 @@
     }
   }
 
-  // === Tasks ===
+  // === Görevler ===
   const tasks = [
     { name: "Design", start: "2025-W1", end: "2025-W5" },
     { name: "Backend Development", start: "2025-W6", end: "2025-W25" },
@@ -181,7 +199,7 @@
 
   const table = document.getElementById("gantt");
 
-  // === Row: Years ===
+  // === 1. Satır: Yıllar ===
   const yearRow = document.createElement("tr");
   let currentYear = null, yearSpan = 0, yearCells = "";
   allWeeks.forEach((w, i) => {
@@ -196,7 +214,7 @@
   yearRow.innerHTML = `<th rowspan="3" class="year" style="min-width:180px;">Task</th>` + yearCells;
   table.appendChild(yearRow);
 
-  // === Row: Months ===
+  // === 2. Satır: Aylar ===
   const monthRow = document.createElement("tr");
   let currentMonth = "", currentYearForMonth = null, monthSpan = 0, monthCells = "";
   allWeeks.forEach((w, i) => {
@@ -213,12 +231,12 @@
   monthRow.innerHTML = monthCells;
   table.appendChild(monthRow);
 
-  // === Row: Weeks ===
+  // === 3. Satır: Haftalar ===
   const weekRow = document.createElement("tr");
   weekRow.innerHTML = allWeeks.map(w => `<th class="week" id="${w.year}-W${w.week}">w${w.week}</th>`).join("");
   table.appendChild(weekRow);
 
-  // === Rows: Tasks ===
+  // === Görev Satırları ===
   tasks.forEach(task => {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="task-name">${task.name}</td>`;
@@ -240,7 +258,7 @@
     return order(current) >= order(start) && order(current) <= order(end);
   }
 
-  // === Highlight current week ===
+  // === 🔸 Bugünün haftasını bul, renklendir ve ortala ===
   const today = new Date();
   const todayYear = today.getFullYear();
   const todayWeek = getISOWeek(today);
