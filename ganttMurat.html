@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Murat KILCI Master Deegree Gantt Chart (2025–2028)</title>
+<style>
+  :root {
+    --bg-light: #f8fafc;
+    --header-dark: #0f172a;
+    --header-mid: #1e3a8a;
+    --header-light: #2563eb;
+    --border-color: #dbe2ef;
+    --bar-color: #38bdf8; /* 🔵 soft cyan */
+    --bar-blend: #fb923c; /* 🔸 turuncu karışımı */
+    --highlight-color: rgba(251, 146, 60, 0.12);
+    --task-bg: #f8fafc;
+  }
+
+  body {
+    font-family: "Inter", "Segoe UI", sans-serif;
+    margin: 20px;
+    background: var(--bg-light);
+    color: #1e293b;
+  }
+
+  h2 {
+    text-align: center;
+    color: var(--header-dark);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .gantt-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 80vh;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    background: white;
+    border: 1px solid var(--border-color);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: max-content;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  th, td {
+    border: 1px solid var(--border-color);
+    text-align: center;
+    padding: 6px;
+    transition: background 0.3s ease;
+  }
+
+  th.year, th.month, th.week {
+    width: 80px;
+    min-width: 80px;
+  }
+
+  /* === HEADER === */
+  th.year {
+    background: var(--header-dark);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    left: 0;
+  }
+
+  th.month {
+    background: var(--header-mid);
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 28px;
+    z-index: 19;
+  }
+
+  th.week {
+    background: var(--header-light);
+    color: #fff;
+    font-weight: 500;
+    position: sticky;
+    top: 56px;
+    z-index: 18;
+    white-space: nowrap;
+    border-radius: 0;
+  }
+
+  /* === BUGÜNÜN HAFTASI === */
+  th.week.today {
+    background: #f97316 !important;
+    color: white;
+    font-weight: 700;
+    z-index: 30;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    transform: translateZ(0); /* 🔧 scroll jitter fix */
+  }
+
+  .today-column {
+    background: var(--highlight-color) !important;
+    position: relative;
+    z-index: 0;
+  }
+
+  /* 🔸 Karışım Efekti: hem bugünün haftası hem bar */
+  td.bar.today-column {
+    background: linear-gradient(135deg, var(--bar-color) 40%, var(--bar-blend) 60%);
+    mix-blend-mode: multiply;
+    filter: brightness(1.05);
+  }
+
+  /* === SABİT İLK SÜTUN === */
+  td.task-name {
+    background: var(--task-bg);
+    font-weight: 600;
+    text-align: left;
+    color: var(--header-dark);
+    min-width: 180px;
+    position: sticky;
+    left: 0;
+    z-index: 25;
+    border-right: 2px solid var(--border-color);
+  }
+
+  /* === GÖREV BARLARI === */
+  td.bar {
+    background: var(--bar-color);
+    border-radius: 6px;
+    position: relative;
+    z-index: 5;
+    transition: filter 0.2s ease;
+  }
+
+  /* === Hover === */
+  tr:hover td:not(.task-name):not(.bar) {
+    background-color: #f8ffff;
+  }
+
+  tr:hover td.bar {
+    filter: brightness(1.08);
+  }
+
+  /* === Scrollbar === */
+  ::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+  }
+
+</style>
+</head>
+<body>
+
+<h2>Weekly Gantt Chart (2025–2028)</h2>
+<div class="gantt-container" id="gantt-container">
+  <table id="gantt"></table>
+</div>
+
+<script>
+  // === Yardımcı Fonksiyonlar ===
+  function getISOWeek(date) {
+    const tmp = new Date(date.getTime());
+    tmp.setHours(0, 0, 0, 0);
+    tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7));
+    const week1 = new Date(tmp.getFullYear(), 0, 4);
+    return 1 + Math.round(((tmp - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+  }
+
+  function getWeeksInYear(year) {
+    const d = new Date(year, 11, 31);
+    return getISOWeek(d) === 1 ? 52 : getISOWeek(d);
+  }
+
+  // === Haftalar ===
+  const allWeeks = [];
+  for (let year = 2025; year <= 2028; year++) {
+    const totalWeeks = getWeeksInYear(year);
+    for (let w = 1; w <= totalWeeks; w++) {
+      const d = new Date(year, 0, 1 + (w - 1) * 7);
+      const month = d.toLocaleString("en", { month: "short" });
+      allWeeks.push({ year, month, week: w });
+    }
+  }
+
+  // === Görevler ===
+  const tasks = [
+    { name: "Design", start: "2025-W1", end: "2025-W5" },
+    { name: "Backend Development", start: "2025-W6", end: "2025-W25" },
+    { name: "Frontend Development", start: "2025-W10", end: "2025-W30" },
+    { name: "Integration", start: "2025-W31", end: "2025-W40" },
+    { name: "Testing & QA", start: "2025-W41", end: "2025-W48" },
+    { name: "Release", start: "2025-W49", end: "2025-W52" }
+  ];
+
+  const table = document.getElementById("gantt");
+
+  // === Yıllar Satırı ===
+  const yearRow = document.createElement("tr");
+  let currentYear = null, yearSpan = 0, yearCells = "";
+  allWeeks.forEach((w, i) => {
+    if (w.year !== currentYear) {
+      if (yearSpan > 0)
+        yearCells += `<th class="year" colspan="${yearSpan}">${currentYear}</th>`;
+      currentYear = w.year; yearSpan = 1;
+    } else yearSpan++;
+    if (i === allWeeks.length - 1)
+      yearCells += `<th class="year" colspan="${yearSpan}">${currentYear}</th>`;
+  });
+  yearRow.innerHTML = `<th rowspan="3" class="year" style="min-width:180px;">Task</th>` + yearCells;
+  table.appendChild(yearRow);
+
+  // === Ay Satırı ===
+  const monthRow = document.createElement("tr");
+  let currentMonth = "", currentYearForMonth = null, monthSpan = 0, monthCells = "";
+  allWeeks.forEach((w, i) => {
+    if (w.month !== currentMonth || w.year !== currentYearForMonth) {
+      if (monthSpan > 0)
+        monthCells += `<th class="month" colspan="${monthSpan}">${currentMonth}</th>`;
+      currentMonth = w.month;
+      currentYearForMonth = w.year;
+      monthSpan = 1;
+    } else monthSpan++;
+    if (i === allWeeks.length - 1)
+      monthCells += `<th class="month" colspan="${monthSpan}">${currentMonth}</th>`;
+  });
+  monthRow.innerHTML = monthCells;
+  table.appendChild(monthRow);
+
+  // === Hafta Satırı ===
+  const weekRow = document.createElement("tr");
+  weekRow.innerHTML = allWeeks.map(w => `<th class="week" id="${w.year}-W${w.week}">w${w.week}</th>`).join("");
+  table.appendChild(weekRow);
+
+  // === Görev Satırları ===
+  tasks.forEach(task => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td class="task-name">${task.name}</td>`;
+    allWeeks.forEach(w => {
+      const id = `${w.year}-W${w.week}`;
+      const td = document.createElement("td");
+      td.dataset.week = id;
+      if (isBetweenWeeks(id, task.start, task.end)) td.classList.add("bar");
+      row.appendChild(td);
+    });
+    table.appendChild(row);
+  });
+
+  function isBetweenWeeks(current, start, end) {
+    const order = id => {
+      const [y, wk] = id.split("-W");
+      return parseInt(y) * 100 + parseInt(wk);
+    };
+    return order(current) >= order(start) && order(current) <= order(end);
+  }
+
+  // === Bugünün Haftası ===
+  const today = new Date();
+  const todayYear = today.getFullYear();
+  const todayWeek = getISOWeek(today);
+  const todayId = `${todayYear}-W${todayWeek}`;
+  const todayEl = document.getElementById(todayId);
+
+  if (todayEl) {
+    todayEl.classList.add("today");
+    document.querySelectorAll(`[data-week='${todayId}']`).forEach(cell => {
+      cell.classList.add("today-column");
+      if (cell.classList.contains("bar")) {
+        cell.classList.add("today-bar-blend");
+      }
+    });
+    const container = document.getElementById("gantt-container");
+    const offsetLeft = todayEl.offsetLeft - container.clientWidth / 2 + todayEl.clientWidth / 2;
+    container.scrollLeft = offsetLeft;
+  }
+</script>
+</body>
+</html>
