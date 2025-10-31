@@ -69,6 +69,7 @@
     position: sticky;
     top: 0;
     z-index: 20;
+    left: 0; /* sabit kolon hizalaması */
   }
   th.month {
     background: var(--header-mid);
@@ -89,7 +90,7 @@
     white-space: nowrap;
   }
 
-  /* === TASKS === */
+  /* === SABİT İLK SÜTUN === */
   td.task-name {
     background: var(--task-bg);
     font-weight: 600;
@@ -102,12 +103,13 @@
     border-right: 2px solid var(--border-color);
   }
 
+  /* === Görev Barları === */
   td.bar {
     background: var(--bar-color);
     border-radius: 8px;
     position: relative;
     z-index: 5;
-    mix-blend-mode: multiply; /* 🔹 Renkleri karıştırır */
+    mix-blend-mode: multiply;
     transition: filter 0.2s ease;
   }
 
@@ -125,7 +127,7 @@
   /* === Bugünün haftası === */
   .today-column {
     background: var(--highlight-color) !important;
-    mix-blend-mode: multiply; /* 🔹 Bar renkleriyle karışsın */
+    mix-blend-mode: multiply;
   }
 
   th.week.today {
@@ -149,7 +151,6 @@
     background-color: #94a3b8;
   }
 
-  /* === Hover transition === */
   tr {
     transition: background 0.2s ease;
   }
@@ -163,7 +164,6 @@
 </div>
 
 <script>
-  // === Yardımcı Fonksiyonlar ===
   function getISOWeek(date) {
     const tmp = new Date(date.getTime());
     tmp.setHours(0, 0, 0, 0);
@@ -176,7 +176,6 @@
     return getISOWeek(d) === 1 ? 52 : getISOWeek(d);
   }
 
-  // === Haftaları oluştur ===
   const allWeeks = [];
   for (let year = 2025; year <= 2028; year++) {
     const totalWeeks = getWeeksInYear(year);
@@ -187,7 +186,6 @@
     }
   }
 
-  // === Görevler ===
   const tasks = [
     { name: "Design", start: "2025-W1", end: "2025-W5" },
     { name: "Backend Development", start: "2025-W6", end: "2025-W25" },
@@ -199,7 +197,6 @@
 
   const table = document.getElementById("gantt");
 
-  // === 1. Satır: Yıllar ===
   const yearRow = document.createElement("tr");
   let currentYear = null, yearSpan = 0, yearCells = "";
   allWeeks.forEach((w, i) => {
@@ -214,7 +211,6 @@
   yearRow.innerHTML = `<th rowspan="3" class="year" style="min-width:180px;">Task</th>` + yearCells;
   table.appendChild(yearRow);
 
-  // === 2. Satır: Aylar ===
   const monthRow = document.createElement("tr");
   let currentMonth = "", currentYearForMonth = null, monthSpan = 0, monthCells = "";
   allWeeks.forEach((w, i) => {
@@ -231,12 +227,10 @@
   monthRow.innerHTML = monthCells;
   table.appendChild(monthRow);
 
-  // === 3. Satır: Haftalar ===
   const weekRow = document.createElement("tr");
   weekRow.innerHTML = allWeeks.map(w => `<th class="week" id="${w.year}-W${w.week}">w${w.week}</th>`).join("");
   table.appendChild(weekRow);
 
-  // === Görev Satırları ===
   tasks.forEach(task => {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="task-name">${task.name}</td>`;
@@ -258,7 +252,6 @@
     return order(current) >= order(start) && order(current) <= order(end);
   }
 
-  // === 🔸 Bugünün haftasını bul, renklendir ve ortala ===
   const today = new Date();
   const todayYear = today.getFullYear();
   const todayWeek = getISOWeek(today);
