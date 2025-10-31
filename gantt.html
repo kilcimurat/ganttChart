@@ -8,106 +8,120 @@
   h2 { text-align: center; margin-bottom: 15px; }
   table { border-collapse: collapse; width: 100%; font-size: 12px; table-layout: fixed; }
   th, td { border: 1px solid #ccc; padding: 3px; text-align: center; }
-  th.month { background: #003366; color: white; font-weight: 600; }
-  th.week { background: #005f99; color: white; }
+  th.year { background: #001f3f; color: #fff; font-weight: 700; font-size: 13px; }
+  th.month { background: #004d80; color: #fff; font-weight: 600; }
+  th.week { background: #0074cc; color: #fff; font-weight: 500; }
   .task-name { text-align: left; background: #f0f0f0; font-weight: 500; white-space: nowrap; }
-  .bar { background: #00b894; height: 16px; border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<h2>Weekly Gantt Chart (2025–2028)</h2>
+<h2>Weekly Gantt Chart (2025–2028, Continuous Weeks)</h2>
 <table id="gantt"></table>
 
 <script>
-  // === 1. Yardımcı Fonksiyonlar ===
   const months = [
     "January","February","March","April","May","June",
     "July","August","September","October","November","December"
   ];
+  // Yaklaşık haftalar
+  const weeksPerMonth = [5,4,4,4,5,4,4,5,4,4,5,4]; // toplam 52
 
-  function getWeeksPerMonth(year) {
-    // Ortalama 4-5 hafta/ay yaklaşımı
-    return [5,4,4,4,5,4,4,5,4,4,5,4]; 
-    // toplam = 52
-  }
-
-  // === 2. Yıllık haftaları üret ===
+  // Her yılın haftalarını sırayla üret
   function generateYearWeeks(year) {
     const weeks = [];
-    const weeksPerMonth = getWeeksPerMonth(year);
-    months.forEach((m, idx) => {
-      const count = weeksPerMonth[idx];
-      for (let w = 1; w <= count; w++) {
-        weeks.push({year, month: m, label: `W${w}`});
+    let weekCounter = 1;
+    months.forEach((month, i) => {
+      for (let w = 0; w < weeksPerMonth[i]; w++) {
+        weeks.push({
+          year,
+          month,
+          weekOfYear: weekCounter,
+          label: `W${weekCounter}`
+        });
+        weekCounter++;
       }
     });
     return weeks;
   }
 
-  // === 3. 2025–2028 arası haftalar ===
+  // 2025–2028 arası haftalar
   const allWeeks = [];
   for (let y = 2025; y <= 2028; y++) {
     allWeeks.push(...generateYearWeeks(y));
   }
 
-  // === 4. Görevler (haftalık bazda) ===
+  // Örnek görevler
   const tasks = [
-    { name: "Design", start: "2025-January-W1", end: "2025-February-W1" },
-    { name: "Backend Development", start: "2025-February-W2", end: "2025-July-W3" },
-    { name: "Frontend Development", start: "2025-April-W1", end: "2025-August-W2" },
-    { name: "Integration", start: "2025-September-W1", end: "2025-October-W2" },
-    { name: "Testing & QA", start: "2025-October-W3", end: "2025-December-W2" },
-    { name: "Release", start: "2025-December-W3", end: "2025-December-W4" },
-    { name: "Maintenance", start: "2026-January-W1", end: "2028-December-W4" }
+    { name: "Design", start: "2025-W1", end: "2025-W5" },
+    { name: "Backend Development", start: "2025-W6", end: "2025-W25" },
+    { name: "Frontend Development", start: "2025-W10", end: "2025-W30" },
+    { name: "Integration", start: "2025-W31", end: "2025-W40" },
+    { name: "Testing & QA", start: "2025-W41", end: "2025-W48" },
+    { name: "Release", start: "2025-W49", end: "2025-W52" },
+    { name: "Maintenance", start: "2026-W1", end: "2028-W52" }
   ];
 
-  // === 5. Tablo oluştur ===
   const table = document.getElementById("gantt");
 
-  // --- Üst Başlık: Aylar ---
+  // === 1. Yıl satırı ===
+  const yearRow = document.createElement("tr");
+  let currentYear = null;
+  let yearSpan = 0;
+  let yearCells = "";
+  allWeeks.forEach((w, idx) => {
+    if (w.year !== currentYear) {
+      if (yearSpan > 0) {
+        yearCells += `<th class="year" colspan="${yearSpan}">${currentYear}</th>`;
+      }
+      currentYear = w.year;
+      yearSpan = 1;
+    } else {
+      yearSpan++;
+    }
+    if (idx === allWeeks.length - 1) {
+      yearCells += `<th class="year" colspan="${yearSpan}">${currentYear}</th>`;
+    }
+  });
+  yearRow.innerHTML = `<th rowspan="3">Task</th>` + yearCells;
+  table.appendChild(yearRow);
+
+  // === 2. Ay satırı ===
   const monthRow = document.createElement("tr");
   let monthCells = "";
-  let monthGroup = {};
-  allWeeks.forEach((w) => {
-    monthGroup[w.month] = (monthGroup[w.month] || 0) + 1;
+  let currentMonth = "";
+  let currentYearForMonth = null;
+  let monthSpan = 0;
+  allWeeks.forEach((w, idx) => {
+    if (w.month !== currentMonth || w.year !== currentYearForMonth) {
+      if (monthSpan > 0) {
+        monthCells += `<th class="month" colspan="${monthSpan}">${currentMonth}</th>`;
+      }
+      currentMonth = w.month;
+      currentYearForMonth = w.year;
+      monthSpan = 1;
+    } else {
+      monthSpan++;
+    }
+    if (idx === allWeeks.length - 1) {
+      monthCells += `<th class="month" colspan="${monthSpan}">${currentMonth}</th>`;
+    }
   });
-
-  // Tek tek ekle
-  for (let y = 2025; y <= 2028; y++) {
-    const yearWeeks = allWeeks.filter(w => w.year === y);
-    let currentMonth = "";
-    let span = 0;
-    yearWeeks.forEach((w, idx) => {
-      if (w.month !== currentMonth) {
-        if (span > 0) {
-          monthCells += `<th class="month" colspan="${span}">${currentMonth} ${y}</th>`;
-        }
-        currentMonth = w.month;
-        span = 1;
-      } else {
-        span++;
-      }
-      if (idx === yearWeeks.length - 1) {
-        monthCells += `<th class="month" colspan="${span}">${currentMonth} ${y}</th>`;
-      }
-    });
-  }
-  monthRow.innerHTML = `<th rowspan="2">Task</th>` + monthCells;
+  monthRow.innerHTML = monthCells;
   table.appendChild(monthRow);
 
-  // --- Alt Başlık: Haftalar ---
+  // === 3. Hafta satırı ===
   const weekRow = document.createElement("tr");
   weekRow.innerHTML = allWeeks.map(w => `<th class="week">${w.label}</th>`).join("");
   table.appendChild(weekRow);
 
-  // --- Görev satırları ---
+  // === 4. Görev satırları ===
   tasks.forEach(task => {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="task-name">${task.name}</td>`;
     allWeeks.forEach(w => {
+      const id = `${w.year}-W${w.weekOfYear}`;
       const td = document.createElement("td");
-      const id = `${w.year}-${w.month}-${w.label}`;
       if (isBetweenWeeks(id, task.start, task.end)) {
         td.style.background = "#00b894";
       }
@@ -116,14 +130,15 @@
     table.appendChild(row);
   });
 
-  // === Yardımcı karşılaştırma fonksiyonu ===
+  // === Yardımcı fonksiyon ===
   function isBetweenWeeks(current, start, end) {
-    const order = (id) => {
-      const [y, m, wk] = id.split("-");
-      return parseInt(y)*1000 + months.indexOf(m)*10 + parseInt(wk.replace("W",""));
+    const order = id => {
+      const [y, wk] = id.split("-W");
+      return parseInt(y) * 100 + parseInt(wk);
     };
     return order(current) >= order(start) && order(current) <= order(end);
   }
 </script>
+
 </body>
 </html>
