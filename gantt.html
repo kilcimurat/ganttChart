@@ -10,9 +10,9 @@
     --header-mid: #1e3a8a;
     --header-light: #2563eb;
     --border-color: #dbe2ef;
-    --bar-color: #00b894;
-    --highlight-color: rgba(255, 180, 0, 0.15);
-    --hover-row: #f1f5f9;
+    --bar-color: #38bdf8; /* 🔵 modern soft cyan (eski yeşil yerine) */
+    --bar-blend: #fb923c; /* 🔸 turuncu ile karışım hedefi */
+    --highlight-color: rgba(251, 146, 60, 0.15); /* turuncu transparan */
     --task-bg: #f8fafc;
   }
 
@@ -45,14 +45,13 @@
     width: max-content;
     font-size: 13px;
     border-radius: 12px;
-    overflow: hidden;
   }
 
   th, td {
     border: 1px solid var(--border-color);
     text-align: center;
     padding: 6px;
-    transition: background 0.3s;
+    transition: background 0.3s ease;
   }
 
   th.year, th.month, th.week {
@@ -69,7 +68,7 @@
     position: sticky;
     top: 0;
     z-index: 20;
-    left: 0; /* sabit kolon hizalaması */
+    left: 0;
   }
   th.month {
     background: var(--header-mid);
@@ -78,7 +77,6 @@
     position: sticky;
     top: 28px;
     z-index: 19;
-    white-space: nowrap;
   }
   th.week {
     background: var(--header-light);
@@ -87,7 +85,6 @@
     position: sticky;
     top: 56px;
     z-index: 18;
-    white-space: nowrap;
   }
 
   /* === SABİT İLK SÜTUN === */
@@ -103,39 +100,41 @@
     border-right: 2px solid var(--border-color);
   }
 
-  /* === Görev Barları === */
+  /* === BARLAR === */
   td.bar {
     background: var(--bar-color);
-    border-radius: 8px;
+    border-radius: 6px;
     position: relative;
     z-index: 5;
-    mix-blend-mode: multiply;
     transition: filter 0.2s ease;
   }
 
-  /* === Hover satırları === */
+  /* === Hover === */
   tr:hover td:not(.task-name):not(.bar) {
     background-color: #f8ffff;
-    z-index: 0;
   }
   tr:hover td.bar {
-    opacity: 1;
-    filter: brightness(1.1);
-    z-index: 6;
+    filter: brightness(1.08);
   }
 
-  /* === Bugünün haftası === */
-  .today-column {
-    background: var(--highlight-color) !important;
-    mix-blend-mode: multiply;
-  }
-
+  /* === Bugünün Haftası === */
   th.week.today {
     background: #f97316 !important;
     color: white;
     font-weight: 700;
     border-radius: 6px 6px 0 0;
     z-index: 30;
+  }
+
+  .today-column {
+    background: var(--highlight-color) !important;
+  }
+
+  /* 🔸 Karışım Efekti: Eğer hücre hem today hem bar ise renkler toplanır */
+  td.bar.today-column {
+    background: linear-gradient(135deg, var(--bar-color) 40%, var(--bar-blend) 60%);
+    mix-blend-mode: multiply;
+    filter: brightness(1.05);
   }
 
   /* === Scrollbar === */
@@ -149,10 +148,6 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background-color: #94a3b8;
-  }
-
-  tr {
-    transition: background 0.2s ease;
   }
 </style>
 </head>
@@ -197,6 +192,7 @@
 
   const table = document.getElementById("gantt");
 
+  // === Yıl Satırı ===
   const yearRow = document.createElement("tr");
   let currentYear = null, yearSpan = 0, yearCells = "";
   allWeeks.forEach((w, i) => {
@@ -211,6 +207,7 @@
   yearRow.innerHTML = `<th rowspan="3" class="year" style="min-width:180px;">Task</th>` + yearCells;
   table.appendChild(yearRow);
 
+  // === Ay Satırı ===
   const monthRow = document.createElement("tr");
   let currentMonth = "", currentYearForMonth = null, monthSpan = 0, monthCells = "";
   allWeeks.forEach((w, i) => {
@@ -227,10 +224,12 @@
   monthRow.innerHTML = monthCells;
   table.appendChild(monthRow);
 
+  // === Hafta Satırı ===
   const weekRow = document.createElement("tr");
   weekRow.innerHTML = allWeeks.map(w => `<th class="week" id="${w.year}-W${w.week}">w${w.week}</th>`).join("");
   table.appendChild(weekRow);
 
+  // === Görev Satırları ===
   tasks.forEach(task => {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="task-name">${task.name}</td>`;
@@ -252,6 +251,7 @@
     return order(current) >= order(start) && order(current) <= order(end);
   }
 
+  // === Bugünün Haftası ===
   const today = new Date();
   const todayYear = today.getFullYear();
   const todayWeek = getISOWeek(today);
@@ -262,12 +262,14 @@
     todayEl.classList.add("today");
     document.querySelectorAll(`[data-week='${todayId}']`).forEach(cell => {
       cell.classList.add("today-column");
+      if (cell.classList.contains("bar")) {
+        cell.classList.add("today-bar-blend");
+      }
     });
     const container = document.getElementById("gantt-container");
     const offsetLeft = todayEl.offsetLeft - container.clientWidth / 2 + todayEl.clientWidth / 2;
     container.scrollLeft = offsetLeft;
   }
 </script>
-
 </body>
 </html>
