@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": "demo-murat",
+      "name": "Murat",
+      "planning": [
+        { "week": 1, "year": 2024, "note": "Setup project structure" },
+        { "week": 2, "year": 2024, "note": "Design Gantt UI" },
+        { "week": 5, "year": 2024, "note": "QA + stakeholder sync" }
+      ]
+    },
+    {
+      "id": "demo-ux",
+      "name": "UX Team",
+      "planning": [
+        { "week": 3, "year": 2024, "note": "Journey mapping" },
+        { "week": 4, "year": 2024, "note": "Clickable prototype" },
+        { "week": 6, "year": 2024, "note": "Usability test" }
+      ]
+    }
+  ]
+}

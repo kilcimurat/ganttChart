@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Team Planning</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Offline Demo</p>
+      <h1>Team Planning</h1>
+    </div>
+    <div class="header-actions">
+      <button id="view-log-btn" class="ghost" type="button">View Change Log</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="team-view" class="view active">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Team Management</h2>
+          <p class="muted">Add teammates and jump into their 52-week plan.</p>
+        </div>
+
+        <label class="muted" for="member-name">Member name</label>
+        <div class="input-row">
+          <input id="member-name" type="text" placeholder="e.g. Design Lead" maxlength="60" />
+          <button id="add-member" type="button">+ Add</button>
+        </div>
+        <p id="member-error" class="error-text hidden" role="alert"></p>
+
+        <ul id="member-list" class="member-list" aria-live="polite"></ul>
+      </div>
+    </section>
+
+    <section id="planner-view" class="view hidden" aria-live="polite">
+      <div class="planner-header">
+        <div class="planner-title-group">
+          <button id="back-btn" class="ghost" type="button">&larr; Back to team</button>
+          <h2 id="planner-title">Weekly Plan</h2>
+        </div>
+        <div class="year-switcher" aria-label="Year selector">
+          <button id="prev-year" class="ghost" type="button" aria-label="Previous year">&lsaquo;</button>
+          <span id="year-label" aria-live="polite">2024</span>
+          <button id="next-year" class="ghost" type="button" aria-label="Next year">&rsaquo;</button>
+        </div>
+      </div>
+      <p id="planner-description" class="muted">Click a week cell to capture a short status, milestone, or goal.</p>
+      <div id="week-grid" class="week-grid" role="grid" aria-live="polite"></div>
+      <p id="planner-empty" class="muted">Select a team member to view their schedule.</p>
+    </section>
+
+    <section id="log-view" class="view hidden" aria-live="polite">
+      <div class="panel">
+      <div class="panel-header log-header">
+        <div class="planner-title-group">
+          <button id="back-from-log" class="ghost" type="button">&larr; Back</button>
+          <h2>Change Log</h2>
+        </div>
+        <div class="log-header-actions">
+          <p class="muted small">Newest entries first. Data refreshes in real time.</p>
+          <button id="clear-log-btn" class="ghost danger" type="button">Clear Change Log</button>
+        </div>
+      </div>
+
+        <div class="log-list-wrapper">
+          <ul id="log-list" class="log-list" aria-live="polite"></ul>
+          <p id="log-empty" class="muted">No changes recorded yet. Start planning to see activity.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="note-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-content">
+      <header>
+        <h3 id="modal-title">Week Note</h3>
+      </header>
+      <textarea id="note-input" rows="6" placeholder="Outline focus, risks, or dependencies..."></textarea>
+      <div class="modal-actions">
+        <button id="cancel-note" class="ghost" type="button">Cancel</button>
+        <button id="save-note" type="button">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="log-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="log-modal-title">
+    <div class="modal-content">
+      <header>
+        <h3 id="log-modal-title">Clear Change Log</h3>
+      </header>
+      <p class="muted">This will permanently delete every entry in the change log. This action cannot be undone.</p>
+      <p id="log-modal-status" class="modal-status hidden" role="status"></p>
+      <div class="modal-actions">
+        <button id="log-modal-cancel" class="ghost" type="button">Cancel</button>
+        <button id="log-modal-confirm" class="danger" type="button">Delete Everything</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="delete-user-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="delete-user-title">
+    <div class="modal-content">
+      <header>
+        <h3 id="delete-user-title">Remove Teammate</h3>
+      </header>
+      <p id="delete-user-message" class="muted">This member and their notes will be deleted.</p>
+      <p id="delete-user-status" class="modal-status hidden" role="status"></p>
+      <div class="modal-actions">
+        <button id="delete-user-cancel" class="ghost" type="button">Cancel</button>
+        <button id="delete-user-confirm" class="danger" type="button">Delete Member</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
